@@ -38,19 +38,20 @@ Filter.prototype.rebuild = function () {
 Filter.prototype.read = function (readTree) {
   var self = this
 
-  this.needsCleanup = true
-
   return readTree(this.inputTree)
     .then(function (inputPath) {
       self.inputPath = inputPath
       return self.rebuild()
     })
     .then(function () {
+      // Return the inputPath as the output, because this plugin has no output
       return self.inputPath
     })
 }
 
-Filter.prototype.cleanup = function () {}
+Filter.prototype.cleanup = function () {
+  // Nothing to cleanup
+}
 
 Filter.prototype.canProcessFile = function (relativePath) {
   return this.getDestFilePath(relativePath) != null

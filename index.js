@@ -8,8 +8,8 @@ var walkSync = require('walk-sync')
 var mapSeries = require('promise-map-series')
 
 
-module.exports = Filter
-function Filter (inputTree, options) {
+module.exports = NoOpFilter
+function NoOpFilter (inputTree, options) {
   if (!inputTree) {
     throw new Error('broccoli-noop-filter must be passed an inputTree, instead it received `undefined`');
   }
@@ -20,7 +20,7 @@ function Filter (inputTree, options) {
   if (options.inputEncoding !== undefined) this.inputEncoding = options.inputEncoding
 }
 
-Filter.prototype.rebuild = function () {
+NoOpFilter.prototype.rebuild = function () {
   var self = this
 
   var paths = walkSync(this.inputPath)
@@ -35,7 +35,7 @@ Filter.prototype.rebuild = function () {
 
 // Compatibility with Broccoli < 0.14
 // See https://github.com/broccolijs/broccoli/blob/master/docs/new-rebuild-api.md
-Filter.prototype.read = function (readTree) {
+NoOpFilter.prototype.read = function (readTree) {
   var self = this
 
   return readTree(this.inputTree)
@@ -49,15 +49,15 @@ Filter.prototype.read = function (readTree) {
     })
 }
 
-Filter.prototype.cleanup = function () {
+NoOpFilter.prototype.cleanup = function () {
   // Nothing to cleanup
 }
 
-Filter.prototype.canProcessFile = function (relativePath) {
+NoOpFilter.prototype.canProcessFile = function (relativePath) {
   return this.getDestFilePath(relativePath) != null
 }
 
-Filter.prototype.getDestFilePath = function (relativePath) {
+NoOpFilter.prototype.getDestFilePath = function (relativePath) {
   for (var i = 0; i < this.extensions.length; i++) {
     var ext = this.extensions[i]
     if (relativePath.slice(-ext.length - 1) === '.' + ext) {
@@ -73,7 +73,7 @@ Filter.prototype.getDestFilePath = function (relativePath) {
 // To do: Get rid of the srcDir/destDir args because we now have inputPath/outputPath
 // https://github.com/search?q=processAndCacheFile&type=Code&utf8=%E2%9C%93
 
-Filter.prototype.processAndCacheFile = function (srcDir, relativePath) {
+NoOpFilter.prototype.processAndCacheFile = function (srcDir, relativePath) {
   var self = this
 
   this._cache = this._cache || {}
@@ -104,7 +104,7 @@ Filter.prototype.processAndCacheFile = function (srcDir, relativePath) {
   }
 }
 
-Filter.prototype.processFile = function (srcDir, relativePath) {
+NoOpFilter.prototype.processFile = function (srcDir, relativePath) {
   var self = this
   var inputEncoding = (this.inputEncoding === undefined) ? 'utf8' : this.inputEncoding
   var string = fs.readFileSync(srcDir + '/' + relativePath, { encoding: inputEncoding })

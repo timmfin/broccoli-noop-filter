@@ -95,12 +95,25 @@ NoOpFilter.prototype.processAndCacheFile = function (srcDir, relativePath) {
         if (err.column != null) err.broccoliInfo.firstColumn = err.column
         throw err
       })
+      .then(function (cacheInfo) {
+        copyToCache(cacheInfo)
+      })
   }
 
   function hash (filePaths) {
     return filePaths.map(function (filePath) {
       return helpers.hashTree(srcDir + '/' + filePath)
     }).join(',')
+  }
+
+  function copyToCache (cacheInfo) {
+    var cacheEntry = {
+      inputFiles: (cacheInfo || {}).inputFiles || [relativePath],
+      outputFiles: (cacheInfo || {}).outputFiles || [self.getDestFilePath(relativePath)],
+      cacheFiles: []
+    }
+    cacheEntry.hash = hash(cacheEntry.inputFiles)
+    self._cache[relativePath] = cacheEntry
   }
 }
 

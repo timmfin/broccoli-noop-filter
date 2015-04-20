@@ -18,6 +18,7 @@ function NoOpFilter (inputTree, options) {
   if (options.extensions != null) this.extensions = options.extensions
   if (options.targetExtension != null) this.targetExtension = options.targetExtension
   if (options.inputEncoding !== undefined) this.inputEncoding = options.inputEncoding
+  if (typeof options.onCachedFile == "function") this.onCachedFile = options.onCachedFile
 }
 
 NoOpFilter.prototype.rebuild = function () {
@@ -80,7 +81,8 @@ NoOpFilter.prototype.processAndCacheFile = function (srcDir, relativePath) {
   this._cacheIndex = this._cacheIndex || 0
   var cacheEntry = this._cache[relativePath]
   if (cacheEntry != null && cacheEntry.hash === hash(cacheEntry.inputFiles)) {
-    // Do nothing
+    // Do nothing unless a custom cache func has been set
+    if (self.onCachedFile) self.onCachedFile(srcDir, relativePath);
   } else {
     return Promise.resolve()
       .then(function () {

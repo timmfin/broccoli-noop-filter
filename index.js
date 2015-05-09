@@ -23,15 +23,17 @@ function NoOpFilter (inputTree, options) {
 
 NoOpFilter.prototype.rebuild = function () {
   var self = this
-
   var paths = walkSync(this.inputPath)
-    return mapSeries(paths, function (relativePath) {
-      if (relativePath.slice(-1) !== '/') {
-        if (self.canProcessFile(relativePath)) {
-          return self.processAndCacheFile(self.inputPath, relativePath)
-        }
+
+  return mapSeries(paths, function (relativePath) {
+    if (relativePath.slice(-1) !== '/') {
+      if (self.canProcessFile(relativePath)) {
+        return self.processAndCacheFile(self.inputPath, relativePath)
       }
-    })
+    }
+  }).then(function() {
+    return self.inputPath;
+  });
 }
 
 // Compatibility with Broccoli < 0.14

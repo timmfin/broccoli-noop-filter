@@ -52,10 +52,6 @@ NoOpFilter.prototype.read = function (readTree) {
     })
 }
 
-NoOpFilter.prototype.cleanup = function () {
-  // Nothing to cleanup
-}
-
 NoOpFilter.prototype.canProcessFile = function (relativePath) {
   return this.getDestFilePath(relativePath) != null
 }

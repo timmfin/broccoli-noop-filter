@@ -1,11 +1,13 @@
 var fs = require('fs')
 var path = require('path')
+var rimraf = require('rimraf').sync
 var mkdirp = require('mkdirp')
 var Promise = require('rsvp').Promise
 var quickTemp = require('quick-temp')
 var helpers = require('broccoli-kitchen-sink-helpers')
 var walkSync = require('walk-sync')
 var mapSeries = require('promise-map-series')
+var symlinkOrCopy = require('symlink-or-copy').sync
 
 
 module.exports = NoOpFilter
@@ -19,11 +21,22 @@ function NoOpFilter (inputTree, options) {
   if (options.targetExtension != null) this.targetExtension = options.targetExtension
   if (options.inputEncoding !== undefined) this.inputEncoding = options.inputEncoding
   if (typeof options.onCachedFile == "function") this.onCachedFile = options.onCachedFile
+
+  this.needToSymlinkInputToOutput = true;
 }
 
 NoOpFilter.prototype.rebuild = function () {
   var self = this
   var paths = walkSync(this.inputPath)
+
+  // Need to symlink the input to the output, but only have to do it once
+  // (with broccoli-plugin, can no longer simply return this.inputPath at the
+  // end of the rebuild)
+  if (this.needToSymlinkInputToOutput) {
+    rimraf(this.outputPath);
+    symlinkOrCopy(this.inputPath, this.outputPath);
+    this.needToSymlinkInputToOutput = false;
+  }
 
   return mapSeries(paths, function (relativePath) {
     if (relativePath.slice(-1) !== '/') {
@@ -31,9 +44,7 @@ NoOpFilter.prototype.rebuild = function () {
         return self.processAndCacheFile(self.inputPath, relativePath)
       }
     }
-  }).then(function() {
-    return self.inputPath;
-  });
+  })
 }
 
 // Compatibility with Broccoli < 0.14

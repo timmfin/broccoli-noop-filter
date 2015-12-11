@@ -2,6 +2,7 @@ var fs = require('fs')
 var path = require('path')
 var rimraf = require('rimraf').sync
 var mkdirp = require('mkdirp')
+var Plugin = require('broccoli-plugin');
 var Promise = require('rsvp').Promise
 var quickTemp = require('quick-temp')
 var helpers = require('broccoli-kitchen-sink-helpers')
@@ -11,6 +12,9 @@ var symlinkOrCopy = require('symlink-or-copy').sync
 
 
 module.exports = NoOpFilter
+NoOpFilter.prototype = Object.create(Plugin.prototype);
+NoOpFilter.constructor = NoOpFilter;
+
 function NoOpFilter (inputTree, options) {
   if (!inputTree) {
     throw new Error('broccoli-noop-filter must be passed an inputTree, instead it received `undefined`');
@@ -25,7 +29,7 @@ function NoOpFilter (inputTree, options) {
   this.needToSymlinkInputToOutput = true;
 }
 
-NoOpFilter.prototype.rebuild = function () {
+NoOpFilter.prototype.build = function () {
   var self = this
   var paths = walkSync(this.inputPath)
 
@@ -45,22 +49,6 @@ NoOpFilter.prototype.rebuild = function () {
       }
     }
   })
-}
-
-// Compatibility with Broccoli < 0.14
-// See https://github.com/broccolijs/broccoli/blob/master/docs/new-rebuild-api.md
-NoOpFilter.prototype.read = function (readTree) {
-  var self = this
-
-  return readTree(this.inputTree)
-    .then(function (inputPath) {
-      self.inputPath = inputPath
-      return self.rebuild()
-    })
-    .then(function () {
-      // Return the inputPath as the output, because this plugin has no output
-      return self.inputPath
-    })
 }
 
 NoOpFilter.prototype.canProcessFile = function (relativePath) {
